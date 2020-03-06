@@ -18,12 +18,12 @@ RUN curl -L https://github.com/microsoft/mimalloc/archive/v1.0.8.tar.gz \
     && make -j2 \
     && install -D -m 755 -s -o root -g root libmimalloc.so /opt/mimalloc/libmimalloc.so
 
-FROM adoptopenjdk/openjdk11-openj9:jdk-11.0.6_10_openj9-0.18.1-ubuntu
+FROM adoptopenjdk/openjdk11-openj9:jdk-11.0.4_11_openj9-0.15.1
 LABEL maintainer="Mark Vainomaa <mikroskeem@mikroskeem.eu>"
 
 # Set up base system
 RUN    DEBIAN_FRONTEND=noninteractive apt-get -y update \
-    && DEBIAN_FRONTEND=noninteractive apt-get -y install curl git tar sqlite tzdata locales iproute2 \
+    && DEBIAN_FRONTEND=noninteractive apt-get -y install curl git tar sqlite tzdata locales iproute2 unzip \
     && locale-gen en_US.UTF-8 \
     && update-locale LANG=en_US.UTF-8 \
     && ln -sf /usr/share/zoneinfo/UTC /etc/localtime \

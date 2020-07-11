@@ -42,7 +42,7 @@ ENV USER=container HOME=/home/container LANG=en_US.UTF-8
 WORKDIR /home/container
 
 # Expose Port for Grafana/Prometheus
-EXPOSE 9193
+EXPOSE 9797
 
 COPY ./entrypoint.sh /entrypoint.sh
 CMD ["/entrypoint.sh"]

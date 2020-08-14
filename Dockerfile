@@ -1,21 +1,23 @@
 FROM openjdk:15-alpine
 WORKDIR /root
 
+RUN java -version
+
 # Set up base system
 RUN apk update \
-    && apk add curl git tar iproute2 unzip
-
-# Set up container user
-RUN    groupadd -g 1000 container \
-    && useradd -d /home/container -m -u 1000 -g 1000 container
-
-# Set up default user and environment
+    && apk add  curl ca-certificates openssl git tar sqlite fontconfig tzdata iproute2 unzip
+ 
 USER container
-ENV USER=container HOME=/home/container LANG=en_US.UTF-8
-WORKDIR /home/container
+ENV  USER=container HOME=/home/container
+
+USER        container
+ENV         USER=container HOME=/home/container
+
+WORKDIR     /home/container
 
 # Expose Port for Grafana/Prometheus
 EXPOSE 9797
 
-COPY ./entrypoint.sh /entrypoint.sh
-CMD ["/entrypoint.sh"]
+COPY        ./entrypoint.sh /entrypoint.sh
+
+CMD         ["/bin/bash", "/entrypoint.sh"]

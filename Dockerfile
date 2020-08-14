@@ -2,8 +2,8 @@ FROM openjdk:15-alpine
 WORKDIR /root
 
 # Set up base system
-RUN apk -y update \
-    && apk -y install curl git tar iproute2 unzip
+RUN apk update \
+    && apk install curl git tar iproute2 unzip
 
 # Set up container user
 RUN    groupadd -g 1000 container \

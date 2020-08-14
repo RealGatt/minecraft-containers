@@ -1,25 +1,48 @@
-FROM debian:10.5-slim
+FROM quay.io/mikroskeem/ubuntu-devel:ubuntu_18.04_vanilla
+WORKDIR /root
 
-RUN	apt update && apt upgrade -y \
-	&& apt install -y gnupg \
-	&& apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 \
-		--recv-keys 0xB1998361219BD9C9 \
-	&& echo "deb http://repos.azulsystems.com/debian stable main" >> /etc/apt/sources.list.d/zulu.list \
-	&& mkdir -p /usr/share/man/man1 \
-	&& apt update \
-	&& apt install -y curl ca-certificates openssl git tar sqlite fontconfig iproute2 tzdata openjdk-15-jdk \
-	&& useradd -d /home/container -m container
- 
-RUN java -version
- 
+# Install jemalloc
+RUN curl -L https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2 \
+    | tar -xvjf - \
+    && cd jemalloc-5.2.1 \
+    && ./configure --prefix=/opt/jemalloc --enable-prof --enable-debug --enable-log --with-malloc-conf \
+    && make -j2 \
+    && make install
+
+# Install mimalloc
+RUN curl -L https://github.com/microsoft/mimalloc/archive/v1.0.8.tar.gz \
+    | tar -xvzf - \
+    && mkdir -p mimalloc-1.0.8/out \
+    && cd mimalloc-1.0.8/out \
+    && cmake .. \
+    && make -j2 \
+    && install -D -m 755 -s -o root -g root libmimalloc.so /opt/mimalloc/libmimalloc.so
+
+FROM adoptopenjdk/openjdk14:jdk-14.0.2_12
+LABEL maintainer="Mark Vainomaa <mikroskeem@mikroskeem.eu>"
+
+# Set up base system
+RUN    DEBIAN_FRONTEND=noninteractive apt-get -y update \
+    && DEBIAN_FRONTEND=noninteractive apt-get -y install curl git tar sqlite tzdata locales iproute2 unzip \
+    && locale-gen en_US.UTF-8 \
+    && update-locale LANG=en_US.UTF-8 \
+    && ln -sf /usr/share/zoneinfo/UTC /etc/localtime \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=0 /opt/jemalloc /opt/jemalloc
+COPY --from=0 /opt/mimalloc /opt/mimalloc
+
+# Set up container user
+RUN    groupadd -g 1000 container \
+    && useradd -d /home/container -m -u 1000 -g 1000 container
+
+# Set up default user and environment
 USER container
-ENV	USER=container HOME=/home/container
-
-WORKDIR	/home/container
+ENV USER=container HOME=/home/container LANG=en_US.UTF-8
+WORKDIR /home/container
 
 # Expose Port for Grafana/Prometheus
 EXPOSE 9797
 
-COPY        ./entrypoint.sh /entrypoint.sh
-
-CMD         ["/bin/bash", "/entrypoint.sh"]
+COPY ./entrypoint.sh /entrypoint.sh
+CMD ["/entrypoint.sh"]

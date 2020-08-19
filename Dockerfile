@@ -1,5 +1,4 @@
-FROM adoptopenjdk/openjdk14:jdk-14.0.2_12-debian
-LABEL maintainer="Mark Vainomaa <mikroskeem@mikroskeem.eu>"
+FROM adoptopenjdk/openjdk14:jdk-14.0.2_12-debian-slim
 WORKDIR /root
 
 # Install jemalloc
@@ -20,8 +19,8 @@ WORKDIR /root
 #    && install -D -m 755 -s -o root -g root libmimalloc.so /opt/mimalloc/libmimalloc.so
 
 # Set up base system
-RUN    DEBIAN_FRONTEND=noninteractive apt-get -y update \
-    && DEBIAN_FRONTEND=noninteractive apt-get -y install curl git tar sqlite tzdata locales iproute2 unzip \
+RUN apt-get -y update \
+    && apt-get -y install curl git tar sqlite tzdata locales iproute2 unzip \
     && locale-gen en_US.UTF-8 \
     && update-locale LANG=en_US.UTF-8 \
     && ln -sf /usr/share/zoneinfo/UTC /etc/localtime \
